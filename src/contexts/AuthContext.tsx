@@ -1,27 +1,24 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  phone: string;
-  role: "user" | "admin";
-}
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { getCurrentUser, signIn, signUp, signOut, type UserProfile } from "@/lib/store";
 
 interface AuthContextType {
-  user: User | null;
-  profile: UserProfile | null;
+  user: UserProfile | null;
   loading: boolean;
   isAdmin: boolean;
+  login: (phone: string, password: string) => void;
+  register: (name: string, phone: string, password: string) => void;
+  logout: () => void;
+  error: string;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  profile: null,
-  loading: true,
+  loading: false,
   isAdmin: false,
+  login: () => {},
+  register: () => {},
+  logout: () => {},
+  error: "",
 });
 
 export function useAuth() {
@@ -29,37 +26,36 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(() => getCurrentUser());
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        const ref = doc(db, "users", firebaseUser.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          setProfile({ id: snap.id, ...snap.data() } as UserProfile);
-        } else {
-          const newProfile: Omit<UserProfile, "id"> = {
-            name: firebaseUser.displayName || "User",
-            phone: firebaseUser.phoneNumber || "",
-            role: "user",
-          };
-          await setDoc(ref, newProfile);
-          setProfile({ id: firebaseUser.uid, ...newProfile });
-        }
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    });
-    return unsub;
+  const login = useCallback((phone: string, password: string) => {
+    try {
+      setError("");
+      const u = signIn(phone, password);
+      setUser(u);
+    } catch (e: any) {
+      setError(e.message);
+    }
+  }, []);
+
+  const register = useCallback((name: string, phone: string, password: string) => {
+    try {
+      setError("");
+      const u = signUp(name, phone, password);
+      setUser(u);
+    } catch (e: any) {
+      setError(e.message);
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    signOut();
+    setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAdmin: profile?.role === "admin" }}>
+    <AuthContext.Provider value={{ user, loading: false, isAdmin: user?.role === "admin", login, register, logout, error }}>
       {children}
     </AuthContext.Provider>
   );

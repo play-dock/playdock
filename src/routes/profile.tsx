@@ -9,7 +9,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { user, profile, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -40,10 +40,10 @@ function ProfilePage() {
             <User className="h-7 w-7 text-primary" />
           </div>
           <div>
-            <h2 className="font-semibold text-card-foreground">{profile?.name}</h2>
-            <p className="text-sm text-muted-foreground">{profile?.phone || user.phoneNumber || "No phone"}</p>
+            <h2 className="font-semibold text-card-foreground">{user.name}</h2>
+            <p className="text-sm text-muted-foreground">{user.phone || "No phone"}</p>
             <span className="mt-1 inline-block rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
-              {profile?.role || "user"}
+              {user.role}
             </span>
           </div>
         </div>
