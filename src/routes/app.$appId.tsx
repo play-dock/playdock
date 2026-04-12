@@ -1,19 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getAppById, incrementDownloads, type AppItem } from "@/lib/store";
 import { Header } from "@/components/Header";
 import { Download, ArrowLeft } from "lucide-react";
-
-interface AppDetail {
-  name: string;
-  description: string;
-  category: string;
-  iconURL: string;
-  fileURL: string;
-  downloads: number;
-  status: string;
-}
 
 export const Route = createFileRoute("/app/$appId")({
   component: AppDetailPage,
@@ -21,38 +10,18 @@ export const Route = createFileRoute("/app/$appId")({
 
 function AppDetailPage() {
   const { appId } = Route.useParams();
-  const [app, setApp] = useState<AppDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [app, setApp] = useState<AppItem | null>(null);
 
   useEffect(() => {
-    async function fetch() {
-      try {
-        const snap = await getDoc(doc(db, "apps", appId));
-        if (snap.exists()) setApp(snap.data() as AppDetail);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetch();
+    setApp(getAppById(appId));
   }, [appId]);
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (!app?.fileURL) return;
-    await updateDoc(doc(db, "apps", appId), { downloads: increment(1) });
+    incrementDownloads(appId);
     setApp((prev) => prev ? { ...prev, downloads: prev.downloads + 1 } : prev);
     window.open(app.fileURL, "_blank");
   };
-
-  if (loading) {
-    return (
-      <div>
-        <Header title="App Details" />
-        <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-      </div>
-    );
-  }
 
   if (!app) {
     return (

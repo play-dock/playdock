@@ -1,19 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getAllApps, approveApp, deleteApp, type AppItem } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { Check, Trash2, ArrowLeft } from "lucide-react";
-
-interface AppItem {
-  id: string;
-  name: string;
-  category: string;
-  status: string;
-  downloads: number;
-  createdBy: string;
-}
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -22,22 +12,9 @@ export const Route = createFileRoute("/admin")({
 function AdminPage() {
   const { isAdmin, loading } = useAuth();
   const [apps, setApps] = useState<AppItem[]>([]);
-  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    if (!isAdmin) return;
-    async function fetch() {
-      try {
-        const q = query(collection(db, "apps"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(q);
-        setApps(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppItem)));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setFetching(false);
-      }
-    }
-    fetch();
+    if (isAdmin) setApps(getAllApps());
   }, [isAdmin]);
 
   if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
@@ -51,15 +28,15 @@ function AdminPage() {
     );
   }
 
-  const approve = async (id: string) => {
-    await updateDoc(doc(db, "apps", id), { status: "approved" });
-    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status: "approved" } : a)));
+  const handleApprove = (id: string) => {
+    approveApp(id);
+    setApps(getAllApps());
   };
 
-  const remove = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm("Delete this app?")) return;
-    await deleteDoc(doc(db, "apps", id));
-    setApps((prev) => prev.filter((a) => a.id !== id));
+    deleteApp(id);
+    setApps(getAllApps());
   };
 
   return (
@@ -70,11 +47,7 @@ function AdminPage() {
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
 
-        {fetching ? (
-          <div className="flex justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        ) : apps.length === 0 ? (
+        {apps.length === 0 ? (
           <p className="py-20 text-center text-sm text-muted-foreground">No apps</p>
         ) : (
           <div className="space-y-2">
@@ -88,11 +61,11 @@ function AdminPage() {
                 </div>
                 <div className="flex gap-2">
                   {app.status !== "approved" && (
-                    <button onClick={() => approve(app.id)} className="rounded-lg bg-accent p-2 text-accent-foreground">
+                    <button onClick={() => handleApprove(app.id)} className="rounded-lg bg-accent p-2 text-accent-foreground">
                       <Check className="h-4 w-4" />
                     </button>
                   )}
-                  <button onClick={() => remove(app.id)} className="rounded-lg bg-destructive/10 p-2 text-destructive">
+                  <button onClick={() => handleDelete(app.id)} className="rounded-lg bg-destructive/10 p-2 text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

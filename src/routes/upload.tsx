@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { addApp, fileToDataURL } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { LoginPrompt } from "@/components/LoginPrompt";
@@ -15,12 +13,11 @@ export const Route = createFileRoute("/upload")({
 });
 
 function UploadPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Apps");
   const [fileURL, setFileURL] = useState("");
-  const [apkFile, setApkFile] = useState<File | null>(null);
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -33,36 +30,22 @@ function UploadPage() {
     setSubmitting(true);
     try {
       let iconURL = "";
-      let finalFileURL = fileURL;
-
       if (iconFile) {
-        const iconRef = ref(storage, `apps/icons/${Date.now()}_${iconFile.name}`);
-        await uploadBytes(iconRef, iconFile);
-        iconURL = await getDownloadURL(iconRef);
+        iconURL = await fileToDataURL(iconFile);
       }
 
-      if (apkFile) {
-        const apkRef = ref(storage, `apps/apk/${Date.now()}_${apkFile.name}`);
-        await uploadBytes(apkRef, apkFile);
-        finalFileURL = await getDownloadURL(apkRef);
-      }
-
-      await addDoc(collection(db, "apps"), {
+      addApp({
         name: name.trim(),
         description: description.trim(),
         category,
         iconURL,
-        fileURL: finalFileURL,
-        status: "pending",
-        downloads: 0,
-        createdBy: user.uid,
-        createdAt: serverTimestamp(),
+        fileURL,
+        createdBy: user.id,
       });
 
       setSuccess(true);
       setName("");
       setDescription("");
-      setApkFile(null);
       setIconFile(null);
       setFileURL("");
     } catch (err) {
@@ -124,17 +107,7 @@ function UploadPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-foreground">APK File</label>
-          <input
-            type="file"
-            accept=".apk"
-            onChange={(e) => setApkFile(e.target.files?.[0] || null)}
-            className="w-full text-sm text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1 file:text-sm file:text-primary-foreground"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium text-foreground">Or Website URL</label>
+          <label className="mb-1 block text-sm font-medium text-foreground">Download URL (APK link or website)</label>
           <input
             value={fileURL}
             onChange={(e) => setFileURL(e.target.value)}
