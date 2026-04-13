@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { getAppById, incrementDownloads, type AppItem } from "@/lib/store";
 import { Header } from "@/components/Header";
-import { Download, ArrowLeft, Star, ChevronRight, Info, Shield } from "lucide-react";
+import { Download, ArrowLeft, Star, ChevronRight, Info, Shield, User, Phone } from "lucide-react";
 
 export const Route = createFileRoute("/app/$appId")({
   component: AppDetailPage,
@@ -51,7 +51,7 @@ function AppDetailPage() {
         </Link>
       </div>
 
-      {/* App header - Play Store style */}
+      {/* App header */}
       <div className="flex items-start gap-4 px-4 pb-4">
         <img
           src={app.iconURL || "/placeholder.svg"}
@@ -61,10 +61,14 @@ function AppDetailPage() {
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-semibold leading-tight text-foreground">{app.name}</h1>
           <p className="mt-0.5 text-sm font-medium text-primary">{app.category}</p>
+          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+            <User className="h-3 w-3" />
+            <span>{app.createdByName || "Unknown Developer"}</span>
+          </div>
         </div>
       </div>
 
-      {/* Stats row - Play Store style */}
+      {/* Stats row */}
       <div className="mx-4 flex items-center justify-around border-y border-border py-3">
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-0.5 text-sm font-semibold text-foreground">
@@ -135,8 +139,6 @@ function AppDetailPage() {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {app.description || "No description provided."}
         </p>
-
-        {/* Category tag */}
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
             {app.category}
@@ -144,11 +146,26 @@ function AppDetailPage() {
         </div>
       </div>
 
-      {/* Data safety */}
+      {/* Developer info */}
       <div className="mx-4 mt-4 rounded-xl border border-border p-4">
+        <h2 className="text-sm font-semibold text-foreground">Developer</h2>
+        <div className="mt-2 space-y-1.5">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <User className="h-3.5 w-3.5" />
+            <span>{app.createdByName || "Unknown"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Phone className="h-3.5 w-3.5" />
+            <span>{app.createdByPhone || "—"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Data safety */}
+      <div className="mx-4 mt-3 rounded-xl border border-border p-4">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
-          <h2 className="text-base font-semibold text-foreground">Data safety</h2>
+          <h2 className="text-sm font-semibold text-foreground">Data safety</h2>
         </div>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
           Safety starts with understanding how developers collect and share your data.
