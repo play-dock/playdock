@@ -22,6 +22,8 @@ export interface AppItem {
   downloads: number;
   rating: number;
   createdBy: string;
+  createdByName: string;
+  createdByPhone: string;
   createdAt: number;
 }
 
@@ -66,7 +68,7 @@ export function signUp(name: string, phone: string, password: string): UserProfi
     name,
     phone,
     password,
-    role: users.length === 0 ? "admin" : "user", // first user is admin
+    role: users.length === 0 ? "admin" : "user",
   };
   users.push(user);
   saveUsers(users);
@@ -94,6 +96,15 @@ export function getCurrentUser(): UserProfile | null {
   return users.find((u) => u.id === id) || null;
 }
 
+export function getUserById(id: string): UserProfile | null {
+  const users = getUsers();
+  return users.find((u) => u.id === id) || null;
+}
+
+export function getAllUsers(): UserProfile[] {
+  return getUsers();
+}
+
 // Apps
 export function getAllApps(): AppItem[] {
   return getApps();
@@ -111,7 +122,9 @@ export function getAppById(id: string): AppItem | null {
   return getApps().find((a) => a.id === id) || null;
 }
 
-export function addApp(app: Omit<AppItem, "id" | "createdAt" | "status" | "downloads" | "rating">): AppItem {
+export function addApp(
+  app: Omit<AppItem, "id" | "createdAt" | "status" | "downloads" | "rating">
+): AppItem {
   const apps = getApps();
   const newApp: AppItem = {
     ...app,

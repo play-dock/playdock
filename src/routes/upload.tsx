@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { addApp, fileToDataURL } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/upload")({
 
 function UploadPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Apps");
@@ -21,12 +22,22 @@ function UploadPage() {
   const [fileSize, setFileSize] = useState("");
   const [version, setVersion] = useState("1.0.0");
   const [iconFile, setIconFile] = useState<File | null>(null);
+  const [iconPreview, setIconPreview] = useState("");
   const [screenshotFiles, setScreenshotFiles] = useState<File[]>([]);
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   if (!user) return <><Header title="Upload" /><LoginPrompt message="Sign in to upload apps" /></>;
+
+  const handleIcon = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIconFile(file);
+      const preview = await fileToDataURL(file);
+      setIconPreview(preview);
+    }
+  };
 
   const handleScreenshots = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -37,22 +48,22 @@ function UploadPage() {
   };
 
   const removeScreenshot = (index: number) => {
-    const newFiles = screenshotFiles.filter((_, i) => i !== index);
-    const newPreviews = screenshotPreviews.filter((_, i) => i !== index);
-    setScreenshotFiles(newFiles);
-    setScreenshotPreviews(newPreviews);
+    setScreenshotFiles((f) => f.filter((_, i) => i !== index));
+    setScreenshotPreviews((p) => p.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || submitting) return;
     setSubmitting(true);
     try {
       let iconURL = "";
       if (iconFile) {
         iconURL = await fileToDataURL(iconFile);
       }
-      const screenshots = await Promise.all(screenshotFiles.map(fileToDataURL));
+      const screenshots = screenshotFiles.length > 0
+        ? await Promise.all(screenshotFiles.map(fileToDataURL))
+        : [];
 
       addApp({
         name: name.trim(),
@@ -60,21 +71,26 @@ function UploadPage() {
         category,
         iconURL,
         screenshots,
-        fileURL,
+        fileURL: fileURL.trim(),
         fileSize: fileSize || "varies",
         version: version || "1.0.0",
         createdBy: user.id,
+        createdByName: user.name,
+        createdByPhone: user.phone,
       });
 
       setSuccess(true);
       setName("");
       setDescription("");
       setIconFile(null);
+      setIconPreview("");
       setScreenshotFiles([]);
       setScreenshotPreviews([]);
       setFileURL("");
       setFileSize("");
       setVersion("1.0.0");
+
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error("Upload error:", err);
     } finally {
@@ -130,7 +146,12 @@ function UploadPage() {
 
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">App Icon</label>
-          <input type="file" accept="image/*" onChange={(e) => setIconFile(e.target.files?.[0] || null)}
+          {iconPreview && (
+            <div className="mb-2">
+              <img src={iconPreview} alt="Icon preview" className="h-16 w-16 rounded-xl object-cover" />
+            </div>
+          )}
+          <input type="file" accept="image/*" onChange={handleIcon}
             className="w-full text-sm text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1 file:text-sm file:text-primary-foreground" />
         </div>
 
