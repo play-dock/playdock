@@ -14,9 +14,13 @@ export interface AppItem {
   description: string;
   category: string;
   iconURL: string;
+  screenshots: string[];
   fileURL: string;
+  fileSize: string;
+  version: string;
   status: "pending" | "approved";
   downloads: number;
+  rating: number;
   createdBy: string;
   createdAt: number;
 }
@@ -107,13 +111,14 @@ export function getAppById(id: string): AppItem | null {
   return getApps().find((a) => a.id === id) || null;
 }
 
-export function addApp(app: Omit<AppItem, "id" | "createdAt" | "status" | "downloads">): AppItem {
+export function addApp(app: Omit<AppItem, "id" | "createdAt" | "status" | "downloads" | "rating">): AppItem {
   const apps = getApps();
   const newApp: AppItem = {
     ...app,
     id: crypto.randomUUID(),
     status: "pending",
     downloads: 0,
+    rating: 0,
     createdAt: Date.now(),
   };
   apps.push(newApp);
