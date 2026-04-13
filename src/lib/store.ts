@@ -21,7 +21,10 @@ export interface AppItem {
   createdAt: number;
 }
 
+const isBrowser = typeof window !== "undefined";
+
 function getUsers(): UserProfile[] {
+  if (!isBrowser) return [];
   try {
     return JSON.parse(localStorage.getItem("playdock_users") || "[]");
   } catch {
@@ -30,10 +33,12 @@ function getUsers(): UserProfile[] {
 }
 
 function saveUsers(users: UserProfile[]) {
+  if (!isBrowser) return;
   localStorage.setItem("playdock_users", JSON.stringify(users));
 }
 
 function getApps(): AppItem[] {
+  if (!isBrowser) return [];
   try {
     return JSON.parse(localStorage.getItem("playdock_apps") || "[]");
   } catch {
@@ -42,6 +47,7 @@ function getApps(): AppItem[] {
 }
 
 function saveApps(apps: AppItem[]) {
+  if (!isBrowser) return;
   localStorage.setItem("playdock_apps", JSON.stringify(apps));
 }
 
@@ -60,7 +66,7 @@ export function signUp(name: string, phone: string, password: string): UserProfi
   };
   users.push(user);
   saveUsers(users);
-  localStorage.setItem("playdock_current_user", user.id);
+  if (isBrowser) localStorage.setItem("playdock_current_user", user.id);
   return user;
 }
 
@@ -68,15 +74,16 @@ export function signIn(phone: string, password: string): UserProfile {
   const users = getUsers();
   const user = users.find((u) => u.phone === phone && u.password === password);
   if (!user) throw new Error("Invalid phone or password");
-  localStorage.setItem("playdock_current_user", user.id);
+  if (isBrowser) localStorage.setItem("playdock_current_user", user.id);
   return user;
 }
 
 export function signOut() {
-  localStorage.removeItem("playdock_current_user");
+  if (isBrowser) localStorage.removeItem("playdock_current_user");
 }
 
 export function getCurrentUser(): UserProfile | null {
+  if (!isBrowser) return null;
   const id = localStorage.getItem("playdock_current_user");
   if (!id) return null;
   const users = getUsers();
