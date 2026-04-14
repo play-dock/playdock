@@ -162,6 +162,39 @@ export function incrementDownloads(id: string) {
   }
 }
 
+export function rateApp(id: string, userId: string, stars: number) {
+  if (!isBrowser) return;
+  const key = "playdock_ratings";
+  let ratings: Record<string, Record<string, number>> = {};
+  try {
+    ratings = JSON.parse(localStorage.getItem(key) || "{}");
+  } catch {}
+  if (!ratings[id]) ratings[id] = {};
+  ratings[id][userId] = stars;
+  localStorage.setItem(key, JSON.stringify(ratings));
+
+  // Update average rating on the app
+  const userRatings = Object.values(ratings[id]);
+  const avg = userRatings.reduce((s, r) => s + r, 0) / userRatings.length;
+
+  const apps = getApps();
+  const app = apps.find((a) => a.id === id);
+  if (app) {
+    app.rating = Math.round(avg * 10) / 10;
+    saveApps(apps);
+  }
+}
+
+export function getUserRating(appId: string, userId: string): number {
+  if (!isBrowser) return 0;
+  try {
+    const ratings = JSON.parse(localStorage.getItem("playdock_ratings") || "{}");
+    return ratings[appId]?.[userId] || 0;
+  } catch {
+    return 0;
+  }
+}
+
 export function fileToDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

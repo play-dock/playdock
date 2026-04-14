@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { getAppById, incrementDownloads, type AppItem } from "@/lib/store";
+import { getAppById, incrementDownloads, rateApp, getUserRating, type AppItem } from "@/lib/store";
+import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { Download, ArrowLeft, Star, ChevronRight, Info, Shield, User, Phone } from "lucide-react";
 
@@ -10,18 +11,32 @@ export const Route = createFileRoute("/app/$appId")({
 
 function AppDetailPage() {
   const { appId } = Route.useParams();
+  const { user } = useAuth();
   const [app, setApp] = useState<AppItem | null>(null);
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const screenshotsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setApp(getAppById(appId));
-  }, [appId]);
+    const a = getAppById(appId);
+    setApp(a);
+    if (user) {
+      setUserRating(getUserRating(appId, user.id));
+    }
+  }, [appId, user]);
 
   const handleDownload = () => {
     if (!app?.fileURL) return;
     incrementDownloads(appId);
     setApp((prev) => prev ? { ...prev, downloads: prev.downloads + 1 } : prev);
     window.open(app.fileURL, "_blank");
+  };
+
+  const handleRate = (stars: number) => {
+    if (!user) return;
+    rateApp(appId, user.id, stars);
+    setUserRating(stars);
+    setApp(getAppById(appId));
   };
 
   if (!app) {
@@ -99,8 +114,9 @@ function AppDetailPage() {
         <button
           onClick={handleDownload}
           disabled={!app.fileURL}
-          className="w-full rounded-lg bg-primary py-3 text-center text-sm font-semibold text-primary-foreground shadow-sm transition-colors active:bg-primary/90 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-center text-sm font-semibold text-primary-foreground shadow-sm transition-colors active:bg-primary/90 disabled:opacity-50"
         >
+          <Download className="h-4 w-4" />
           {app.fileURL ? "Install" : "Not available"}
         </button>
       </div>
@@ -129,6 +145,39 @@ function AppDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Rate this app */}
+      <div className="mx-4 mt-2 rounded-xl border border-border p-4">
+        <h2 className="text-sm font-semibold text-foreground">Rate this app</h2>
+        {user ? (
+          <div className="mt-2 flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onClick={() => handleRate(star)}
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+                className="p-0.5 transition-transform active:scale-110"
+              >
+                <Star
+                  className={`h-7 w-7 ${
+                    star <= (hoverRating || userRating)
+                      ? "fill-primary text-primary"
+                      : "text-muted-foreground"
+                  }`}
+                />
+              </button>
+            ))}
+            {userRating > 0 && (
+              <span className="ml-2 text-xs text-muted-foreground">
+                You rated {userRating}/5
+              </span>
+            )}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">Sign in to rate this app</p>
+        )}
+      </div>
 
       {/* About section */}
       <div className="px-4 py-3">
