@@ -1,0 +1,161 @@
+// Seed demo data for PlayDock so the app looks populated on first visit
+import type { AppItem, UserProfile } from "./store";
+
+const isBrowser = typeof window !== "undefined";
+
+const DEMO_APPS: Omit<AppItem, "id">[] = [
+  {
+    name: "WhatsApp Messenger",
+    description: "WhatsApp Messenger is a FREE messaging app available for Android and other smartphones. WhatsApp uses your phone's Internet connection to let you message and call friends and family.",
+    category: "Apps",
+    iconURL: "https://play-lh.googleusercontent.com/bYtqbOcTYOlgc6gqZ2rwb8lptHuwlNE75zYJu6Bn076-Jbm5JYXhfzcRvMl26-Gwbg=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/whatsapp.apk",
+    fileSize: "64 MB",
+    version: "2.24.10",
+    status: "approved",
+    downloads: 5000000,
+    rating: 4.3,
+    createdBy: "demo-dev-1",
+    createdByName: "Meta Platforms",
+    createdByPhone: "01700000000",
+    createdAt: Date.now() - 86400000 * 30,
+  },
+  {
+    name: "Telegram",
+    description: "Telegram is a cloud-based mobile and desktop messaging app with a focus on security and speed. Fast, simple, secure – and synced across all your devices.",
+    category: "Apps",
+    iconURL: "https://play-lh.googleusercontent.com/ZU9cSsyIqRNYkBnc3op6aw5h0iMjuMEl2M4AimcMhTKvMoOblXLSaxVVROXJO9U6Eg=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/telegram.apk",
+    fileSize: "42 MB",
+    version: "10.8.1",
+    status: "approved",
+    downloads: 1000000,
+    rating: 4.5,
+    createdBy: "demo-dev-2",
+    createdByName: "Telegram FZ-LLC",
+    createdByPhone: "01800000000",
+    createdAt: Date.now() - 86400000 * 20,
+  },
+  {
+    name: "Subway Surfers",
+    description: "DASH as fast as you can! DODGE the oncoming trains! Join the most daring chase. A top-rated endless runner game.",
+    category: "Games",
+    iconURL: "https://play-lh.googleusercontent.com/sDHWDQ__BzFl2jXr2rikBQKP9KdIGSWFjRCiDEr48VSOh2mg6YBZa4MqOxFMuwfcyQ=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/subway.apk",
+    fileSize: "180 MB",
+    version: "3.28.0",
+    status: "approved",
+    downloads: 2000000,
+    rating: 4.6,
+    createdBy: "demo-dev-3",
+    createdByName: "SYBO Games",
+    createdByPhone: "01900000000",
+    createdAt: Date.now() - 86400000 * 15,
+  },
+  {
+    name: "Free Fire MAX",
+    description: "Free Fire MAX is designed exclusively to deliver a premium gameplay experience in a Battle Royale game. Enjoy combat, build, and strategy.",
+    category: "Games",
+    iconURL: "https://play-lh.googleusercontent.com/WWRfJpSNnnBRGOZM0MH44GqYpHse8TcMBunIdFMpi0nkqfwHiFGzUuLapJuVSHjKzgU=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/freefire.apk",
+    fileSize: "720 MB",
+    version: "2.100.1",
+    status: "approved",
+    downloads: 500000,
+    rating: 4.1,
+    createdBy: "demo-dev-4",
+    createdByName: "Garena International",
+    createdByPhone: "01600000000",
+    createdAt: Date.now() - 86400000 * 10,
+  },
+  {
+    name: "Google Calculator",
+    description: "A simple, beautiful and powerful calculator app. Includes standard, scientific, and percentage calculations.",
+    category: "Tools",
+    iconURL: "https://play-lh.googleusercontent.com/FPg7lcFfBuxB_btxoOWVz8Bj3QrfsLFVBVmFMUiOERhx0lHxGnlYIibMjDUfMfaqdA=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/calculator.apk",
+    fileSize: "8 MB",
+    version: "8.7",
+    status: "approved",
+    downloads: 100000,
+    rating: 4.4,
+    createdBy: "demo-dev-5",
+    createdByName: "Google LLC",
+    createdByPhone: "01500000000",
+    createdAt: Date.now() - 86400000 * 5,
+  },
+  {
+    name: "Duolingo",
+    description: "Learn a new language with the world's most-downloaded education app. Fun, effective, and 100% free!",
+    category: "Education",
+    iconURL: "https://play-lh.googleusercontent.com/2kJMaJdGxEL4NQTIaGLcuyq5xXkqudQmIkjysBgGcz3JbSt7jm6BdJzQKAAzLiI_xOM=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/duolingo.apk",
+    fileSize: "55 MB",
+    version: "5.140.0",
+    status: "approved",
+    downloads: 800000,
+    rating: 4.7,
+    createdBy: "demo-dev-6",
+    createdByName: "Duolingo Inc",
+    createdByPhone: "01400000000",
+    createdAt: Date.now() - 86400000 * 3,
+  },
+  {
+    name: "TikTok",
+    description: "TikTok is THE destination for mobile videos. Short-form videos that are exciting, spontaneous, and genuine.",
+    category: "Apps",
+    iconURL: "https://play-lh.googleusercontent.com/OS-MhFGMmy_aOUT7vgQJtiaamPlW-Y0d3oBiYfFJaQjlkpWxE-yD3byfhh2q_f4Zew=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/tiktok.apk",
+    fileSize: "290 MB",
+    version: "33.5.4",
+    status: "approved",
+    downloads: 3000000,
+    rating: 4.4,
+    createdBy: "demo-dev-7",
+    createdByName: "ByteDance",
+    createdByPhone: "01300000000",
+    createdAt: Date.now() - 86400000 * 7,
+  },
+  {
+    name: "Clash of Clans",
+    description: "Join millions of players worldwide as you build your village, raise a clan, and compete in epic Clan Wars!",
+    category: "Games",
+    iconURL: "https://play-lh.googleusercontent.com/y2vXLUmhRkkGfEuqWzfbSHGRE1Rqa_kCTn7tREUTbmZq1MoaKm5ZQ5IDWU0fCI06Lg=w240-h480-rw",
+    screenshots: [],
+    fileURL: "https://example.com/coc.apk",
+    fileSize: "250 MB",
+    version: "16.253.15",
+    status: "approved",
+    downloads: 1500000,
+    rating: 4.5,
+    createdBy: "demo-dev-8",
+    createdByName: "Supercell",
+    createdByPhone: "01200000000",
+    createdAt: Date.now() - 86400000 * 12,
+  },
+];
+
+export function seedDemoData() {
+  if (!isBrowser) return;
+
+  try {
+    const existingApps = JSON.parse(localStorage.getItem("playdock_apps") || "[]");
+    if (existingApps.length > 0) return; // already has data
+
+    const seededApps = DEMO_APPS.map((app, i) => ({
+      ...app,
+      id: `demo-app-${i + 1}`,
+    }));
+
+    localStorage.setItem("playdock_apps", JSON.stringify(seededApps));
+  } catch {
+    // ignore
+  }
+}
