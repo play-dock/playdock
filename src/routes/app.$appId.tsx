@@ -4,8 +4,8 @@ import { getAppById, incrementDownloads, rateApp, getUserRating, getReviews, add
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Download, ArrowLeft, Star, ChevronRight, ChevronDown, ChevronUp,
-  Info, Shield, User, Phone, Lock, Eye, Share2, MoreVert,
-  CheckCircle2, AlertTriangle, Globe, Calendar, Package, Smartphone
+  Info, Shield, User, Phone, Lock, Eye, Share2, EllipsisVertical,
+  CheckCircle2, Globe, Calendar, Package, Smartphone
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/$appId")({
