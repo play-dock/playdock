@@ -8,6 +8,14 @@ export interface UserProfile {
   role: "user" | "admin";
 }
 
+export interface AppReview {
+  userId: string;
+  userName: string;
+  stars: number;
+  comment: string;
+  date: number;
+}
+
 export interface AppItem {
   id: string;
   name: string;
@@ -25,6 +33,22 @@ export interface AppItem {
   createdByName: string;
   createdByPhone: string;
   createdAt: number;
+  // Play Store style fields
+  whatsNew: string;
+  permissions: string[];
+  license: string;
+  privacyPolicyURL: string;
+  contentRating: string;
+  requiresAndroid: string;
+  lastUpdated: number;
+  installs: string;
+  containsAds: boolean;
+  inAppPurchases: boolean;
+  dataSafety: {
+    dataShared: string;
+    dataCollected: string;
+    securityPractices: string;
+  };
 }
 
 const isBrowser = typeof window !== "undefined";
@@ -123,16 +147,18 @@ export function getAppById(id: string): AppItem | null {
 }
 
 export function addApp(
-  app: Omit<AppItem, "id" | "createdAt" | "status" | "downloads" | "rating">
+  app: Omit<AppItem, "id" | "createdAt" | "status" | "downloads" | "rating" | "lastUpdated">
 ): AppItem {
   const apps = getApps();
+  const now = Date.now();
   const newApp: AppItem = {
     ...app,
     id: crypto.randomUUID(),
     status: "pending",
     downloads: 0,
     rating: 0,
-    createdAt: Date.now(),
+    createdAt: now,
+    lastUpdated: now,
   };
   apps.push(newApp);
   saveApps(apps);
@@ -162,6 +188,38 @@ export function incrementDownloads(id: string) {
   }
 }
 
+// Reviews
+export function getReviews(appId: string): AppReview[] {
+  if (!isBrowser) return [];
+  try {
+    const all = JSON.parse(localStorage.getItem("playdock_reviews") || "{}");
+    return all[appId] || [];
+  } catch {
+    return [];
+  }
+}
+
+export function addReview(appId: string, userId: string, userName: string, stars: number, comment: string) {
+  if (!isBrowser) return;
+  const key = "playdock_reviews";
+  let all: Record<string, AppReview[]> = {};
+  try { all = JSON.parse(localStorage.getItem(key) || "{}"); } catch {}
+  if (!all[appId]) all[appId] = [];
+  // Remove existing review by this user
+  all[appId] = all[appId].filter(r => r.userId !== userId);
+  all[appId].push({ userId, userName, stars, comment, date: Date.now() });
+  localStorage.setItem(key, JSON.stringify(all));
+
+  // Update rating on app
+  const avg = all[appId].reduce((s, r) => s + r.stars, 0) / all[appId].length;
+  const apps = getApps();
+  const app = apps.find(a => a.id === appId);
+  if (app) {
+    app.rating = Math.round(avg * 10) / 10;
+    saveApps(apps);
+  }
+}
+
 export function rateApp(id: string, userId: string, stars: number) {
   if (!isBrowser) return;
   const key = "playdock_ratings";
@@ -173,7 +231,6 @@ export function rateApp(id: string, userId: string, stars: number) {
   ratings[id][userId] = stars;
   localStorage.setItem(key, JSON.stringify(ratings));
 
-  // Update average rating on the app
   const userRatings = Object.values(ratings[id]);
   const avg = userRatings.reduce((s, r) => s + r, 0) / userRatings.length;
 
