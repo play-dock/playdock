@@ -99,7 +99,7 @@ function AppDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           <button className="rounded-full p-2 text-foreground active:bg-accent"><Share2 className="h-5 w-5" /></button>
-          <button className="rounded-full p-2 text-foreground active:bg-accent"><MoreVert className="h-5 w-5" /></button>
+          <button className="rounded-full p-2 text-foreground active:bg-accent"><EllipsisVertical className="h-5 w-5" /></button>
         </div>
       </div>
 
